@@ -6,23 +6,46 @@ on:
       - main
 
 jobs:
-  test:
+  frontend:
     runs-on: ubuntu-latest
     steps:
-      - name: hello message
-        run: echo "Hello khaled"
       
       - name: checkout the code
         uses: actions/checkout@v6.1.0 
 
-      - name: list files
-        run: ls -la
+      - name: Setup NodeJs
+        uses: actions/setup-node@v7.1.0 
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+          
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
 
-      - name: Git version
-        run: git --version 
+      - name: Linter
+        working-directory: ./frontend
+        run: npm run lint
 
-      - name: Docker version
-        run: docker --version
+      - name: Build frontend files
+        working-directory: ./frontend
+        run: npm run build
+  
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout the code
+        uses: actions/checkout@v6.1.0
 
-      - name: Print working dir
-        run: pwd
+      - name: Setup Node.JS
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+          
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci 
+           
