@@ -17,4 +17,12 @@ jobs:
 
       - name: list files
         run: ls -la
-    
+
+      - name: Git version
+        run: git --version 
+
+      - name: Docker version
+        run: docker --version
+
+      - name: Print working dir
+        run: pwd
