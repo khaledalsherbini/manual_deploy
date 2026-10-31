@@ -1,0 +1,48 @@
+services:
+  frontend:
+    image: khaledalsherbini/taskmanager-frontend:1.0
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+  backend:
+    image: khaledalsherbini/taskmanager-backend:1.0
+    depends_on:
+      db:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: taskmanager
+      DB_USER: taskuser
+      DB_PASSWORD: devpassword123
+  
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: taskmanager
+      POSTGRES_USER: taskuser
+      POSTGRES_PASSWORD: devpassword123
+    
+    healthcheck:
+     test: ["CMD-SHELL", "pg_isready -U taskuser -d taskmanager"]
+     interval: 5s
+     timeout: 5s
+     retries: 5
+
+    volumes:
+      - task_manager_db_data:/var/lib/postgresql/data
+
+volumes:
+  task_manager_db_data:
+    name: task_manager_db_data
