@@ -48,4 +48,18 @@ jobs:
       - name: Install backend dependencies
         working-directory: ./backend
         run: npm ci 
-           
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [ frontend , backend ] 
+    steps:
+      - name: checkout the code
+        uses: actions/checkout@v6.1.0 
+
+      - name: Build Frontend docker image
+        working-directory: ./frontend
+        run: docker build -t frontend:1.0 .
+
+      - name: Build Backend docker image 
+        working-directory: ./backend
+        run: docker build -t backend:1.0 .
