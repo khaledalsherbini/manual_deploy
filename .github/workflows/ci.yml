@@ -56,10 +56,21 @@ jobs:
       - name: checkout the code
         uses: actions/checkout@v6.1.0 
 
+      - name: Docker Hub login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }} 
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          
       - name: Build Frontend docker image
         working-directory: ./frontend
-        run: docker build -t frontend:1.0 .
+        run: docker build -t khaledalsherbini/taskmanager-frontend:1.0 .
 
       - name: Build Backend docker image 
         working-directory: ./backend
-        run: docker build -t backend:1.0 .
+        run: docker build -t khaledalsherbini/taskmanager-backend:1.0 .
+
+      - name: Push Images to Docker Hub
+        run : | 
+           docker push khaledalsherbini/taskmanager-frontend:1.0 
+           docker push khaledalsherbini/taskmanager-backend:1.0 
