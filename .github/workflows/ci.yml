@@ -109,3 +109,23 @@ jobs:
            EC2_USER: ${{ secrets.EC2_USER }}
          run: |
           scp docker-compose.yml "$EC2_USER@$EC2_HOST:~/taskmanager/docker-compose.yml"
+
+      
+       - name: Configure DB password on EC2
+         env:
+           EC2_HOST: ${{ secrets.EC2_HOST }}
+           EC2_USER: ${{ secrets.EC2_USER }}
+           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+         run: |
+           printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD" | ssh "$EC2_USER@$EC2_HOST" 'umask 077; cat > ~/taskmanager/.env'
+      
+       - name: Deploy application on EC2
+         env:
+           EC2_HOST: ${{ secrets.EC2_HOST }}
+           EC2_USER: ${{ secrets.EC2_USER }}
+         run: |
+           ssh "$EC2_USER@$EC2_HOST" '
+             cd ~/taskmanager
+             sudo docker compose pull
+             sudo docker compose up -d
+           '
