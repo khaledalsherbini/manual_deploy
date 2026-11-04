@@ -2,7 +2,7 @@ services:
   frontend:
     image: khaledalsherbini/taskmanager-frontend:1.0
     ports:
-      - "8080:80"
+      - "80:80"
     depends_on:
       backend:
         condition: service_healthy
@@ -24,7 +24,7 @@ services:
       DB_PORT: 5432
       DB_NAME: taskmanager
       DB_USER: taskuser
-      DB_PASSWORD: devpassword123
+      DB_PASSWORD: ${DB_PASSWORD}
   
 
   db:
@@ -32,7 +32,7 @@ services:
     environment:
       POSTGRES_DB: taskmanager
       POSTGRES_USER: taskuser
-      POSTGRES_PASSWORD: devpassword123
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     
     healthcheck:
      test: ["CMD-SHELL", "pg_isready -U taskuser -d taskmanager"]
