@@ -112,13 +112,28 @@ jobs:
           ssh "$EC2_USER@$EC2_HOST" "mkdir -p ~/taskmanager/database/migrations"
           scp database/migrations/001_create_tasks.sql "$EC2_USER@$EC2_HOST:~/taskmanager/database/migrations/001_create_tasks.sql"
       
-       - name: Configure DB password on EC2
+       - name: Retrieve DB password from AWS Secrets Manager
          env:
            EC2_HOST: ${{ secrets.EC2_HOST }}
            EC2_USER: ${{ secrets.EC2_USER }}
-           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+           
          run: |
-           printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD" | ssh "$EC2_USER@$EC2_HOST" 'umask 077; cat > ~/taskmanager/.env'
+           ssh "$EC2_USER@$EC2_HOST" '
+           set -euo pipefail
+
+           cd ~/taskmanager
+
+           DB_PASSWORD=$(aws secretsmanager get-secret-value \
+           --secret-id taskmanager/prod/database \
+           --region eu-north-1 \
+           --query SecretString \
+           --output text |
+           jq -er ".DB_PASSWORD")
+
+           umask 077
+           printf "DB_PASSWORD=%s\n" "$DB_PASSWORD" > ~/taskmanager/.env.tmp
+           mv ~/taskmanager/.env.tmp ~/taskmanager/.env
+            '
       
        - name: Deploy application on EC2
          env:
