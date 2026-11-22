@@ -25,7 +25,7 @@ services:
       DB_PORT: 5432
       DB_NAME: taskmanager
       DB_USER: taskuser
-      DB_PASSWORD: devpassword123
+      DB_PASSWORD: ${DB_PASSWORD}
   
   migration: 
     image: postgres:17
@@ -37,7 +37,7 @@ services:
       PGPORT: 5432
       PGDATABASE: taskmanager
       PGUSER: taskuser
-      PGPASSWORD: devpassword123   
+      PGPASSWORD: ${DB_PASSWORD}   
     
     entrypoint: ["psql"]
     command: ["-f", "/migrations/001_create_tasks.sql"]
@@ -51,7 +51,7 @@ services:
     environment:
       POSTGRES_DB: taskmanager
       POSTGRES_USER: taskuser
-      POSTGRES_PASSWORD: devpassword123
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     
     healthcheck:
      test: ["CMD-SHELL", "pg_isready -U taskuser -d taskmanager"]
