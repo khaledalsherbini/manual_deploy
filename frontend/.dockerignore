@@ -1,4 +1,5 @@
 node_modules
 .gitignore
 .env
-README.md
+README.md 
+dist 
