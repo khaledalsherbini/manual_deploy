@@ -1,13 +1,13 @@
 services:
   frontend:
-    image: khaledalsherbini/taskmanager-frontend:secured
+    image: khaledalsherbini/taskmanager-frontend:${IMAGE_TAG:?IMAGE_TAG is required}
     ports:
       - "80:8080" 
     depends_on:
       backend:
         condition: service_healthy
   backend:
-    image: khaledalsherbini/taskmanager-backend:secured
+    image: khaledalsherbini/taskmanager-backend:${IMAGE_TAG:?IMAGE_TAG is required}
     depends_on:
       db:
         condition: service_healthy

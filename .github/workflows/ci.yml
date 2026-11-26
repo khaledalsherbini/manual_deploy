@@ -58,12 +58,12 @@ jobs:
 
       - name: Build Frontend docker image
         working-directory: ./frontend
-        run: docker build -t khaledalsherbini/taskmanager-frontend:secured . 
+        run: docker build -t khaledalsherbini/taskmanager-frontend:${{ github.sha }} . 
 
       - name: Trivy Security Scan for Frontend
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: 'khaledalsherbini/taskmanager-frontend:secured'
+          image-ref: 'khaledalsherbini/taskmanager-frontend:${{ github.sha }}'
           format: 'table'
           scan-type: image
           exit-code: '1'
@@ -72,12 +72,12 @@ jobs:
 
       - name: Build Backend docker image 
         working-directory: ./backend
-        run: docker build -t khaledalsherbini/taskmanager-backend:secured .
+        run: docker build -t khaledalsherbini/taskmanager-backend:${{ github.sha }} . 
 
       - name: Trivy Security Scan for Backend
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: 'khaledalsherbini/taskmanager-backend:secured'
+          image-ref: 'khaledalsherbini/taskmanager-backend:${{ github.sha }}'
           format: 'table'
           scan-type: image
           exit-code: '1'
@@ -92,8 +92,8 @@ jobs:
      
       - name: Push Images to Docker Hub
         run : | 
-           docker push khaledalsherbini/taskmanager-frontend:secured
-           docker push khaledalsherbini/taskmanager-backend:secured 
+           docker push khaledalsherbini/taskmanager-frontend:${{ github.sha }}
+           docker push khaledalsherbini/taskmanager-backend:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -136,9 +136,9 @@ jobs:
          env:
            EC2_HOST: ${{ secrets.EC2_HOST }}
            EC2_USER: ${{ secrets.EC2_USER }}
-           
+           GIT_COMMIT: ${{ github.sha }}
          run: |
-           ssh "$EC2_USER@$EC2_HOST" '
+           ssh "$EC2_USER@$EC2_HOST" "GIT_COMMIT='$GIT_COMMIT' bash -s" <<'REMOTE'
            set -euo pipefail
 
            cd ~/taskmanager
@@ -151,14 +151,20 @@ jobs:
            jq -er ".DB_PASSWORD")
 
            umask 077
-           printf "DB_PASSWORD=%s\n" "$DB_PASSWORD" > ~/taskmanager/.env.tmp
-           mv ~/taskmanager/.env.tmp ~/taskmanager/.env
-            '
+          
+           printf 'DB_PASSWORD=%s\nIMAGE_TAG=%s\n' \
+            "$DB_PASSWORD" "$GIT_COMMIT" > .env.tmp 
+          
+           chmod 600 .env.tmp 
+          
+           mv .env.tmp .env
+           REMOTE
       
        - name: Deploy application on EC2
          env:
            EC2_HOST: ${{ secrets.EC2_HOST }}
            EC2_USER: ${{ secrets.EC2_USER }}
+           
          run: |
            ssh "$EC2_USER@$EC2_HOST" '
              cd ~/taskmanager
